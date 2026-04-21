@@ -17,8 +17,8 @@ class MainWindow:
     def __init__(self):
         self.root = tk.Tk()
         self.root.title("Marine Lumber Co. - Detector Pro")
-        self.root.geometry("1150x800")
-        self.root.minsize(950, 650)
+        self.root.geometry("1150x900")
+        self.root.minsize(900, 700)
         self.root.configure(bg="#4a4a4a")
         
         self.model_manager = YOLOModelManager()
@@ -70,9 +70,26 @@ class MainWindow:
         tk.Label(center_inner, text="Professional Edition v2.0", 
                 font=("Arial", 9), bg="white", fg="#666").pack()
         
-        # MAIN
-        main = tk.Frame(self.root, bg="#4a4a4a")
-        main.pack(fill=tk.BOTH, expand=True, padx=12, pady=8)
+        # SCROLLABLE MAIN
+        outer = tk.Frame(self.root, bg="#4a4a4a")
+        outer.pack(fill=tk.BOTH, expand=True)
+        
+        canvas = tk.Canvas(outer, bg="#4a4a4a", highlightthickness=0)
+        scrollbar = tk.Scrollbar(outer, orient="vertical", command=canvas.yview)
+        canvas.configure(yscrollcommand=scrollbar.set)
+        
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        
+        main = tk.Frame(canvas, bg="#4a4a4a")
+        main_id = canvas.create_window((0, 0), window=main, anchor="nw")
+        
+        def _on_configure(event=None):
+            canvas.configure(scrollregion=canvas.bbox("all"))
+            canvas.itemconfig(main_id, width=canvas.winfo_width())
+        
+        main.bind("<Configure>", _on_configure)
+        canvas.bind("<Configure>", _on_configure)
         
         # LEFT
         left = tk.LabelFrame(main, text=" CONFIGURATION ", bg="#4a4a4a", 
@@ -141,8 +158,9 @@ class MainWindow:
         slice_row = tk.Frame(left, bg="#4a4a4a")
         slice_row.pack(fill=tk.X, padx=12)
         om = tk.OptionMenu(slice_row, self.slice_value, 240, 320, 480, 640, 800, 1280)
-        om.config(bg="#e0e0e0", fg="black", font=("Arial", 10), width=8, relief=tk.FLAT)
-        om.pack(side=tk.LEFT)
+        om.config(bg="#e0e0e0", fg="black", font=("Arial", 10), width=10, relief=tk.FLAT)
+        om["menu"].config(bg="#e0e0e0", fg="black", font=("Arial", 10))
+        om.pack(side=tk.LEFT, ipadx=4, ipady=2)
         
         # RIGHT
         right = tk.LabelFrame(main, text=" MONITORING ", bg="#4a4a4a",
@@ -198,7 +216,7 @@ class MainWindow:
         self.log_text.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
         
         # BOTTOM
-        bottom = tk.Frame(self.root, bg="#333333", height=65)
+        bottom = tk.Frame(self.root, bg="#333333", height=55)
         bottom.pack(side=tk.BOTTOM, fill=tk.X)
         bottom.pack_propagate(False)
         
