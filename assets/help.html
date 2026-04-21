@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>MLC Woodpile Detector Pro - User Guide</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background: #f0f2f5; line-height: 1.7; color: #333; }
+        .container { max-width: 900px; margin: 0 auto; background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+        h1 { color: #003366; border-bottom: 3px solid #003366; padding-bottom: 12px; font-size: 28px; }
+        h2 { color: #003366; margin-top: 35px; font-size: 20px; border-left: 5px solid #003366; padding-left: 12px; }
+        h3 { color: #005599; margin-top: 22px; font-size: 16px; }
+        .section { margin-bottom: 30px; }
+        .param { background: #f8f9fa; padding: 14px 18px; margin: 10px 0; border-left: 4px solid #007bff; border-radius: 4px; }
+        .param b { color: #003366; }
+        .step { background: #e8f5e9; padding: 14px 18px; margin: 10px 0; border-left: 4px solid #28a745; border-radius: 4px; }
+        .note { background: #fff3cd; padding: 12px 18px; margin: 10px 0; border-left: 4px solid #ffc107; border-radius: 4px; }
+        .warning { background: #f8d7da; padding: 12px 18px; margin: 10px 0; border-left: 4px solid #dc3545; border-radius: 4px; }
+        code { background: #e9ecef; padding: 2px 6px; border-radius: 3px; font-family: monospace; font-size: 13px; }
+        ul { margin: 8px 0; padding-left: 24px; }
+        li { margin: 6px 0; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>MLC Woodpile Detector Pro - User Guide</h1>
+    
+    <div class="section">
+        <h2>1. Interface Overview</h2>
+        <p>The application window is divided into four main areas:</p>
+        
+        <h3>Header (Top White Bar)</h3>
+        <p>Displays the <b>Marine Lumber Co.</b> logo on the left, the system title <b>"Industrial Wood Pile Detection System"</b> in the center, and the version number below it. This area is for branding only and contains no interactive controls.</p>
+        
+        <h3>Configuration Panel (Left Side)</h3>
+        <p>This is where you set up the detection job before running it. All input fields, buttons, and parameters are located here.</p>
+        
+        <h3>Monitoring Panel (Right Side)</h3>
+        <p>Shows real-time status, progress, statistics, and a detailed processing log during detection. Use this area to track the current job.</p>
+        
+        <h3>Action Bar (Bottom)</h3>
+        <p>Contains three large buttons: <b>START DETECTION</b>, <b>OPEN OUTPUT</b>, and <b>HELP GUIDE</b>.</p>
+    </div>
+    
+    <div class="section">
+        <h2>2. Configuration Panel - Detailed Explanation</h2>
+        
+        <div class="param">
+            <b>YOLO Model File (.pt)</b><br>
+            Shows the path of the currently loaded YOLO detection model. On startup, the app automatically loads <code>assets/best.pt</code>.<br>
+            <b>Import button:</b> Click to browse and select a different <code>.pt</code> model file from your computer. After selection, the app loads the new model and updates the status to "Model Ready".
+        </div>
+        
+        <div class="param">
+            <b>Input Images Folder</b><br>
+            The folder containing the original satellite or aerial images you want to analyze. Supported formats: <code>.png</code>, <code>.jpg</code>, <code>.jpeg</code>.<br>
+            <b>Browse button:</b> Opens a folder picker dialog. Select the folder that contains your source images. The app will scan this folder and ignore any files that already start with <code>detected_</code> (to avoid re-processing results).
+        </div>
+        
+        <div class="param">
+            <b>Output Results Folder</b><br>
+            The folder where annotated result images will be saved. Each output image is a copy of the original with green bounding boxes and confidence scores drawn on it.<br>
+            <b>Browse button:</b> Opens a folder picker dialog. It is recommended to create a new empty folder for each batch job to keep results organized.
+        </div>
+        
+        <div class="param">
+            <b>Confidence Threshold (0.0 - 1.0)</b><br>
+            A slider that filters detection results by confidence score. Only detections with a confidence score <b>equal to or higher</b> than this value will be kept.<br>
+            <ul>
+                <li><b>0.25 - 0.30:</b> Recommended for most clear satellite images. Balances precision and recall.</li>
+                <li><b>0.10 - 0.15:</b> Use when targets are small, blurry, or far away. Will catch more objects but may include false positives.</li>
+                <li><b>0.50+:</b> Use only when you need very high certainty. May miss many valid targets.</li>
+            </ul>
+            The current value is displayed in blue next to "Current:".
+        </div>
+        
+        <div class="param">
+            <b>Slice Size (px)</b><br>
+            The input resolution passed to the YOLO model. The default is <b>640</b>, which is the standard training resolution for most YOLOv8 models.<br>
+            Options: 240, 320, 480, 640, 800, 1280. If you change this, ensure the value is compatible with your model's training configuration.
+        </div>
+    </div>
+    
+    <div class="section">
+        <h2>3. Monitoring Panel - Detailed Explanation</h2>
+        
+        <div class="param">
+            <b>Status</b><br>
+            The large text at the top of the Monitoring panel. Possible states:
+            <ul>
+                <li><b>System Ready</b> - The model is loaded and the app is idle, waiting for your command.</li>
+                <li><b>Processing...</b> - A detection job is currently running.</li>
+                <li><b>Complete!</b> - The last job finished successfully.</li>
+            </ul>
+        </div>
+        
+        <div class="param">
+            <b>Progress Bar</b><br>
+            A horizontal bar that fills from left to right as images are processed. The percentage is shown on the right side of the bar.
+        </div>
+        
+        <div class="param">
+            <b>Statistics</b><br>
+            <ul>
+                <li><b>Images:</b> Total number of images in the current batch.</li>
+                <li><b>Objects:</b> Cumulative count of all woodpiles detected across all processed images so far.</li>
+                <li><b>Avg Conf:</b> Average confidence score of all detected objects in the current batch.</li>
+                <li><b>Rate:</b> Average number of objects detected per image.</li>
+            </ul>
+        </div>
+        
+        <div class="param">
+            <b>Processing Log</b><br>
+            A scrollable text area with a black background and green text. It displays a timestamped record of every action:
+            <ul>
+                <li>Model loading status</li>
+                <li>Folder selections</li>
+                <li>Each image being processed (e.g., <code>[1/3] Processing: test.png</code>)</li>
+                <li>Detection count per image (e.g., <code>Detected 19 objects</code>)</li>
+                <li>Errors or warnings</li>
+            </ul>
+            If something goes wrong, copy the log text here for troubleshooting.
+        </div>
+    </div>
+    
+    <div class="section">
+        <h2>4. Standard Operating Procedure</h2>
+        
+        <div class="step">
+            <b>Step 1 - Wait for Model Load</b><br>
+            Launch the application. Within 5-10 seconds, the <b>Model Status</b> in the Configuration panel should change from "Loading..." to <b>"Model Ready ✅"</b> and the Monitoring Status should show <b>"System Ready"</b>. Do not proceed until this is complete.
+        </div>
+        
+        <div class="step">
+            <b>Step 2 - Select Input Folder</b><br>
+            Click <b>Browse</b> next to "Input Images Folder". Navigate to the folder containing your source images and click "Open". The log will confirm the selection.
+        </div>
+        
+        <div class="step">
+            <b>Step 3 - Select Output Folder</b><br>
+            Click <b>Browse</b> next to "Output Results Folder". Navigate to (or create) an empty folder for results and click "Open". The log will confirm the selection.
+        </div>
+        
+        <div class="step">
+            <b>Step 4 - Adjust Parameters</b><br>
+            Drag the <b>Confidence Threshold</b> slider to your desired value. For first-time use, leave it at <b>0.25</b>. If you find too many objects are being missed, lower it to <b>0.15</b>. If you see too many false detections, raise it to <b>0.35</b>.
+        </div>
+        
+        <div class="step">
+            <b>Step 5 - Start Detection</b><br>
+            Click the <b>START DETECTION</b> button at the bottom. The Status will change to "Processing...", the progress bar will begin to fill, and the log will show each image being analyzed. Do not close the application during this process.
+        </div>
+        
+        <div class="step">
+            <b>Step 6 - Review Results</b><br>
+            When the "Detection Complete!" dialog appears, click OK. Then click <b>OPEN OUTPUT</b> to open the results folder in Finder. Each result image will have green bounding boxes with labels like <code>Wood 0.85</code> indicating the object type and confidence score.
+        </div>
+    </div>
+    
+    <div class="section">
+        <h2>5. Troubleshooting</h2>
+        
+        <div class="warning">
+            <b>Problem: "Model Ready" never appears</b><br>
+            Check that <code>assets/best.pt</code> exists in the application folder. If you moved the app, ensure the model file path is still valid. Try clicking <b>Import</b> and manually selecting the model file.
+        </div>
+        
+        <div class="warning">
+            <b>Problem: 0 objects detected on all images</b><br>
+            1. Lower the Confidence Threshold to <b>0.05</b> and try again.<br>
+            2. Verify that your input images actually contain woodpiles.<br>
+            3. Try re-importing the model file to ensure it is not corrupted.<br>
+            4. Check the Processing Log for error messages.
+        </div>
+        
+        <div class="warning">
+            <b>Problem: "No images found" error</b><br>
+            Ensure your input folder contains <code>.png</code>, <code>.jpg</code>, or <code>.jpeg</code> files. Files starting with <code>detected_</code> are automatically skipped.
+        </div>
+        
+        <div class="note">
+            <b>Tip: Batch Processing</b><br>
+            You can place dozens of images in the Input Folder and process them all in one run. The app processes them sequentially and saves each result automatically.
+        </div>
+    </div>
+    
+    <div class="section">
+        <h2>6. Keyboard Shortcuts</h2>
+        <ul>
+            <li>There are no keyboard shortcuts. All actions are performed via mouse clicks.</li>
+        </ul>
+    </div>
+    
+    <div style="text-align:center; margin-top:40px; color:#666; font-size:12px;">
+        Marine Lumber Co. - Industrial Wood Pile Detection System v2.0<br>
+        All rights reserved.
+    </div>
+</div>
+</body>
+</html>
